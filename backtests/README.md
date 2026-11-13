@@ -103,3 +103,9 @@ loose wide base (BLUESTARCO), and a winner that gave back all gains (JKTYRE).
 | EPS > 0 and Sales >= 15% | 480 | +1.75% | 1.53 | -0.58% | 15.1% | -25.9% |
 Fundamental filters raise per-trade quality a little (best: EPS+Sales 25%) but cut the number of trades so much that
 the 6-stock portfolio sits in cash and CAGR falls. Code 33 almost never happens in this data.
+
+## 2026-11-13 – SEPA on AMFI top-1000 (point-in-time universe, no hindsight)
+Universe each day = NSE stocks in the latest AMFI top-1000 list (2022+), before that top-1000 by 6-month traded value.
+Trades 2715, win 33.3%, avg +1.21%, PF 1.37; 2024+ avg -0.32%.
+Portfolio 2010-2026: CAGR 10.8% (NIFTY 9.8%), max drawdown -28.7%; 2010-17 9.6%, 2018-26 11.6%.
+Conclusion: the 19.4% CAGR on the watchlist universe was mostly hindsight bias (lists picked today).
