@@ -89,3 +89,17 @@ Trade lists in backtests/minervini/. Old Yahoo data has a few bad prices (e.g. K
 Chart review (charts/): winners = first breakout from a long flat base with all averages rising (RRKABEL, GABRIEL, MAHASTEEL);
 losers = late-stage breakout after a big run with 50 SMA flattening (STOVEKRAFT, EMAMIPAP), tangled flat averages (JAYNECOIND),
 loose wide base (BLUESTARCO), and a winner that gave back all gains (JKTYRE).
+
+## 2026-11-13 – SEPA + Minervini fundamentals (NSE point-in-time results), portfolio 2020-2026
+| Filter | Trades (all yrs) | Avg/trade | PF | 2024+ avg | Portfolio CAGR 2020-26 | Max DD |
+|---|---|---|---|---|---|---|
+| none (all stocks) | 2264 | +1.68% | 1.53 | -0.14% | 25.0% | -22.5% |
+| has fundamentals (NSE, same universe) | 996 | +1.68% | 1.52 | -0.23% | 23.6% | -19.7% |
+| EPS >= 25% | 570 | +1.89% | 1.60 | -0.42% | 11.7% | -31.2% |
+| EPS >= 25% and Sales >= 25% | 292 | +2.42% | 1.75 | +0.69% | 12.3% | -26.8% |
+| EPS >= 25% accelerating | 325 | +1.85% | 1.55 | -1.13% | 6.7% | -33.2% |
+| Code 33 | 12 | +0.64% | 1.15 | -0.15% | 0.2% | -4.6% |
+| EPS >= 20% or turnaround | 609 | +1.91% | 1.59 | -0.61% | 13.7% | -37.8% |
+| EPS > 0 and Sales >= 15% | 480 | +1.75% | 1.53 | -0.58% | 15.1% | -25.9% |
+Fundamental filters raise per-trade quality a little (best: EPS+Sales 25%) but cut the number of trades so much that
+the 6-stock portfolio sits in cash and CAGR falls. Code 33 almost never happens in this data.
