@@ -1,0 +1,47 @@
+name: Fetch fundamentals (NSE quarterly results)
+
+on:
+  workflow_dispatch:
+    inputs:
+      chunks:
+        description: 'JSON list of chunk numbers, e.g. [0,1,2,3,4,5]'
+        default: '[0,1,2,3,4,5]'
+      total:
+        description: 'total number of chunks'
+        default: '6'
+      args:
+        description: 'extra args, e.g. --symbols INFY HDFCBANK (test mode)'
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk: ${{ fromJSON(github.event.inputs.chunks) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Fetch
+        env:
+          ARGS: ${{ github.event.inputs.args }}
+        run: eval python tools/fetch_fundamentals.py --chunk ${{ matrix.chunk }} --chunks ${{ github.event.inputs.total }} $ARGS
+      - name: Show sample
+        run: head -30 data/fundamentals/part_${{ matrix.chunk }}.csv; wc -l data/fundamentals/part_${{ matrix.chunk }}.csv
+      - name: Commit
+        if: ${{ github.event.inputs.args == '' }}
+        run: |
+          git config user.name "zone-agent-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/fundamentals
+          git commit -m "Fundamentals chunk ${{ matrix.chunk }}" || exit 0
+          for k in 1 2 3 4 5; do git pull --rebase -q && git push && break; sleep $((RANDOM % 20 + 5)); done

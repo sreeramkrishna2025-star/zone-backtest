@@ -1,0 +1,24 @@
+name: SEPA backtest
+
+on:
+  workflow_dispatch:
+    inputs:
+      args:
+        description: "e.g. --all-watchlists --exit sma50"
+        default: "--all-watchlists"
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Backtest
+        env:
+          ARGS: ${{ github.event.inputs.args }}
+        run: eval python sepa_backtest.py $ARGS

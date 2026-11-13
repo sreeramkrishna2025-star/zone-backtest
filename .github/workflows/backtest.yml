@@ -1,0 +1,28 @@
+name: Backtest setup
+
+on:
+  workflow_dispatch:
+    inputs:
+      args:
+        description: 'e.g. --watchlist "Red list"   or   --symbols ABREL CESC'
+        default: '--watchlist "Red list"'
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Backtest
+        env:
+          ARGS: ${{ github.event.inputs.args }}
+        run: eval python backtest_setup.py $ARGS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backtest-report
+          path: reports/
