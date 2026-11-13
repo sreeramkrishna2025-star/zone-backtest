@@ -263,6 +263,7 @@ def main(argv=None):
     ap.add_argument("--all-watchlists", action="store_true")
     ap.add_argument("--setups", default="VCP,FLAT,PP,CHEAT")
     ap.add_argument("--rs-min", type=float, default=70)
+    ap.add_argument("--universe", default="watchlists", help="watchlists | amfi1000 (top 1000 by market cap at that time)")
     ap.add_argument("--fund", default="none", help="fundamental filter: none|has|eps25|eps25_sales25|eps25_accel|code33|eps20_or_turn|eps_pos_sales15")
     ap.add_argument("--start", default="2010-01-01", help="portfolio start date")
     ap.add_argument("--min-value", type=float, default=0.5, help="min avg daily traded value, Rs crore")
@@ -276,7 +277,14 @@ def main(argv=None):
                        "risk": a.risk, "cost": a.cost, "min_value_cr": a.min_value, "max_gap": a.max_gap})
     global MIN_VALUE_CR, MAX_GAP_DAYS
     MIN_VALUE_CR, MAX_GAP_DAYS = a.min_value, a.max_gap
-    if a.watchlist or a.all_watchlists:
+    amfi = None
+    if a.universe == "amfi1000":
+        amfi = pd.read_csv("data/amfi/ranks.csv")
+        amfi = amfi[amfi["nse_symbol"].notna() & (amfi["rank"] <= 1000)]
+        amfi["avail"] = pd.to_datetime(amfi["period_end"]) + pd.Timedelta(days=15)   # list published ~2 weeks later
+        targets = sorted({f"{str(x).strip()}.NS" for x in amfi["nse_symbol"]})
+        print(f"AMFI top-1000 universe: {len(targets)} NSE symbols across {amfi['period_end'].nunique()} lists")
+    elif a.watchlist or a.all_watchlists:
         from run_agent import pick_watchlists
         targets = [y for y, _ in pick_watchlists(a.watchlist, a.all_watchlists)]
     else:
@@ -297,6 +305,20 @@ def main(argv=None):
     print(f"stocks with data: {len(data)}")
     closes = pd.DataFrame({y: df["Close"] for y, df in data.items()}).sort_index()
     rs = rs_ratings(closes)
+    elig = None
+    if amfi is not None:
+        # before the first AMFI list: top 1000 by 6-month average traded value (proxy for market cap)
+        val = pd.DataFrame({y: (df["Close"] * df["Volume"]) for y, df in data.items()}).reindex(closes.index)
+        vrank = val.rolling(126, min_periods=60).mean().rank(axis=1, ascending=False)
+        elig = vrank <= 1000
+        lists = sorted(amfi["avail"].unique())
+        for i, av in enumerate(lists):
+            end = lists[i + 1] if i + 1 < len(lists) else closes.index[-1] + pd.Timedelta(days=1)
+            members = {f"{str(x).strip()}.NS" for x in amfi.loc[amfi["avail"] == av, "nse_symbol"]}
+            rows = (closes.index >= av) & (closes.index < end)
+            for y in elig.columns:
+                elig.loc[rows, y] = y in members
+        print("eligible stocks per day (median):", int(elig.sum(axis=1).median()))
 
     trades = []
     for y, df in data.items():
@@ -308,8 +330,11 @@ def main(argv=None):
             # quick pre-filter: close at a 10-day high on decent volume
             hh10 = pd.Series(h).shift(1).rolling(10).max().to_numpy()
             cand = np.flatnonzero((c > hh10) & (P["v"] >= 1.0 * np.nan_to_num(vol50, nan=np.inf)))
+            el = elig[y].reindex(df.index).fillna(False).to_numpy() if elig is not None else None
             busy = -1
             for t in cand:
+                if el is not None and not el[t]:
+                    continue
                 if t <= busy or t + 1 >= len(c):
                     continue
                 if not tradable(P, t):
