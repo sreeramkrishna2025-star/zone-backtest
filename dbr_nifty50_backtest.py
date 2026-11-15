@@ -154,11 +154,22 @@ def find_dbr_zones(d: pd.DataFrame) -> list[dict]:
 
 
 # ---------------- trades ----------------
-def trades_for(d: pd.DataFrame, symbol: str) -> list[dict]:
+def uptrend_flags(C: np.ndarray) -> np.ndarray:
+    """True on bar k if, at the close of bar k-1, close > SMA50 and SMA50 > SMA200 (no look-ahead)."""
+    s = pd.Series(C)
+    sma50 = s.rolling(50).mean().to_numpy()
+    sma200 = s.rolling(200).mean().to_numpy()
+    flags = np.zeros(len(C), dtype=bool)
+    flags[1:] = (C[:-1] > sma50[:-1]) & (sma50[:-1] > sma200[:-1])
+    return flags
+
+
+def trades_for(d: pd.DataFrame, symbol: str, use_trend: bool = True) -> list[dict]:
     d = d[~d.index.duplicated()].sort_index()
     O, H, L, C = (d[c].to_numpy(float) for c in ("Open", "High", "Low", "Close"))
     dates = d.index
     n = len(d)
+    up = uptrend_flags(C)
     out = []
     for z in find_dbr_zones(d):
         if z["act"] >= n:
@@ -175,6 +186,8 @@ def trades_for(d: pd.DataFrame, symbol: str) -> list[dict]:
             if C[k] < z["dist"]:               # zone broken before any return
                 break
         if entry_k is None:
+            continue
+        if use_trend and not up[entry_k]:      # buy only in an uptrend
             continue
         sl = z["dist"] * (1 - SL_BUFFER_PCT / 100)
         risk = entry_px - sl
@@ -233,7 +246,7 @@ def simulate(cands: list[dict]) -> pd.DataFrame:
     return pd.DataFrame(done)
 
 
-def summarize(tr: pd.DataFrame, bench: pd.Series | None) -> str:
+def summarize(tr: pd.DataFrame, bench: pd.Series | None, label: str) -> str:
     if tr.empty:
         return "No trades. Check data and rules."
     t = tr.sort_values("exit_date")
@@ -252,7 +265,7 @@ def summarize(tr: pd.DataFrame, bench: pd.Series | None) -> str:
     last_pnl = last["pnl"].sum()
     yr = t.assign(yr=t_exit.dt.year).groupby("yr")["pnl"].sum() / START_CAPITAL * 100
     lines = [
-        "DBR strategy on NIFTY 50 - Rs 1,00,000 start",
+        f"DBR strategy on NIFTY 50 - Rs 1,00,000 start - {label}",
         f"Trades: {len(t)}   Win rate: {(t['pnl'] > 0).mean() * 100:.1f}%",
         f"Avg R: {t['r_multiple'].mean():.2f}   Median R: {t['r_multiple'].median():.2f}",
         f"Profit factor: {(wins / losses if losses > 0 else float('inf')):.2f}",
@@ -265,7 +278,7 @@ def summarize(tr: pd.DataFrame, bench: pd.Series | None) -> str:
         f"Exit reasons: {t['reason'].value_counts().to_dict()}",
         f"Period: {t['entry_date'].min()} to {t['exit_date'].max()}   Stocks traded: {t['symbol'].nunique()}",
         f"Settings: RR={REWARD_RISK}, risk={RISK_PCT}%, max_concurrent={MAX_CONCURRENT}, "
-        f"min_drop={MIN_DROP_PCT}%, base<= {MAX_BASE} candles, rally_move={RALLY_MOVE_PCT}%, "
+        f"uptrend_filter={'on' if 'uptrend' in label else 'off'}, min_drop={MIN_DROP_PCT}%, base<= {MAX_BASE} candles, rally_move={RALLY_MOVE_PCT}%, "
         f"max_SL={MAX_SL_PCT}%, hold={MAX_HOLD_BARS} bars, cost/side={COST_PER_SIDE_PCT}%",
     ]
     if bench is not None and len(bench) > 1:
@@ -292,22 +305,24 @@ def main():
         except Exception:
             bench = None
 
-    cands = []
-    for sym, df in data.items():
-        cands.extend(trades_for(df, sym))
-    print(f"Candidate setups before portfolio limits: {len(cands)}")
-
-    trades = simulate(cands)
-    os.makedirs(OUT_DIR, exist_ok=True)
-    trades.to_csv(os.path.join(OUT_DIR, "trades.csv"), index=False)
     if not args.demo:
-        frames = [df.assign(symbol=s.replace(".NS", "")) for s, df in data.items()]
+        frames = [df.assign(symbol=sym.replace(".NS", "")) for sym, df in data.items()]
+        os.makedirs(OUT_DIR, exist_ok=True)
         pd.concat(frames).to_csv(os.path.join(OUT_DIR, "prices.csv"))
-    text = summarize(trades, bench)
-    with open(os.path.join(OUT_DIR, "summary.txt"), "w", encoding="utf-8") as f:
-        f.write(text + "\n")
-    print(text)
 
+    for use_trend, label, folder in [(True, "uptrend only", "uptrend"), (False, "no trend filter", "no_trend")]:
+        cands = []
+        for sym, df in data.items():
+            cands.extend(trades_for(df, sym, use_trend=use_trend))
+        print(f"[{label}] candidate setups before portfolio limits: {len(cands)}")
+        trades = simulate(cands)
+        out = os.path.join(OUT_DIR, folder)
+        os.makedirs(out, exist_ok=True)
+        trades.to_csv(os.path.join(out, "trades.csv"), index=False)
+        text = summarize(trades, bench, label)
+        with open(os.path.join(out, "summary.txt"), "w", encoding="utf-8") as f:
+            f.write(text + "\n")
+        print(text + "\n")
 
 if __name__ == "__main__":
     main()
