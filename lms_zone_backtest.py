@@ -349,6 +349,18 @@ def summarize(trades: pd.DataFrame, bench: pd.Series | None) -> str:
                        f"SL buffer={SL_BUFFER_PCT}%, max SL={MAX_SL_PCT}%, hold={MAX_HOLD_BARS} bars, "
                        f"cost/side={COST_PER_SIDE_PCT}%",
     ]
+    # last 12 months and year-by-year returns (on START_CAPITAL basis)
+    end = pd.Timestamp(t["exit_date"].max())
+    cut = end - pd.Timedelta(days=365)
+    eq_cut = START_CAPITAL + t.loc[pd.to_datetime(t["exit_date"]) <= cut, "pnl"].sum()
+    last = t[pd.to_datetime(t["exit_date"]) > cut]
+    last_pnl = last["pnl"].sum()
+    lines.append(f"Last 12 months: trades={len(last)}  P&L={last_pnl:,.0f}  "
+                 f"return={last_pnl / eq_cut * 100:.1f}%  (on equity {eq_cut:,.0f} at start)")
+    lines.append(f"For Rs 1,00,000 at the same rate: profit ~ Rs {last_pnl / eq_cut * 100000:,.0f} in last 12 months")
+    yr = (t.assign(yr=pd.to_datetime(t["exit_date"]).dt.year).groupby("yr")["pnl"].sum() / START_CAPITAL * 100)
+    lines.append("Year-wise return (% of 10L start, sum of pnl): " +
+                 ", ".join(f"{y}: {v:.1f}%" for y, v in yr.items()))
     if bench is not None and len(bench) > 1:
         b = bench.iloc[-1] / bench.iloc[0]
         by = (bench.index[-1] - bench.index[0]).days / 365.25
