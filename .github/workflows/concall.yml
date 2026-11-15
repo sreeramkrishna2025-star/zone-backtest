@@ -1,0 +1,54 @@
+name: Concall agent (new transcripts only)
+
+# Cheap on purpose: result-season months only, Tue + Fri 19:30 IST, and it exits in ~1 minute when nothing is new.
+# Free minutes apply because this repo is public. Scheduled runs only start once this file is on the default branch.
+on:
+  schedule:
+    - cron: "0 14 * 1,2,4,5,7,8,10,11 2,5"
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "How many past days of announcements to check"
+        default: "4"
+      finbert:
+        description: "Also use FinBERT (heavy, slower; default off)"
+        type: boolean
+        default: false
+      probe:
+        description: "Only show what NSE returns (first run / debugging), read nothing"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency: concall
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install light packages
+        run: pip install requests pandas numpy pypdf
+      - name: Install FinBERT packages (only if asked)
+        if: ${{ inputs.finbert }}
+        run: pip install transformers torch --extra-index-url https://download.pytorch.org/whl/cpu
+      - name: Probe NSE (only if asked)
+        if: ${{ inputs.probe }}
+        run: python tools/run_concall.py --probe --days "${{ inputs.days || '4' }}"
+      - name: Read new transcripts
+        if: ${{ !inputs.probe }}
+        run: python tools/run_concall.py --days "${{ inputs.days || '4' }}" ${{ inputs.finbert && '--finbert' || '' }}
+      - name: Save results
+        if: ${{ !inputs.probe }}
+        run: |
+          git config user.name "concall-bot"
+          git config user.email "concall-bot@users.noreply.github.com"
+          git add concall/results.csv || true
+          git diff --cached --quiet || (git commit -m "Concall results $(date -u +%F)" && git push)
