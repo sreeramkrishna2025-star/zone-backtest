@@ -1,0 +1,28 @@
+name: LMS zone backtest
+
+on:
+  workflow_dispatch:
+    inputs:
+      args:
+        description: 'e.g. (empty = all NSE symbols in watchlists.json)   or   --limit 100   or   --symbols RELIANCE TCS'
+        default: ''
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: LMS backtest
+        env:
+          ARGS: ${{ github.event.inputs.args }}
+        run: python lms_zone_backtest.py $ARGS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lms-backtest-report
+          path: reports/lms/
