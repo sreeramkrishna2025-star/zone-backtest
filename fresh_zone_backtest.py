@@ -78,6 +78,17 @@ def signals(sym, frames):
     return out
 
 
+def first_touch(D, sg):
+    """Date of the first daily touch after the zone is available, or None."""
+    idx = D.index
+    start = idx.searchsorted(sg["avail"], side="right")
+    L = D["Low"].to_numpy()
+    for i in range(start, len(idx)):
+        if L[i] <= sg["prox"]:
+            return idx[i]
+    return None
+
+
 def simulate_zone(D, sg):
     idx = D.index
     start = idx.searchsorted(sg["avail"], side="right")
@@ -118,7 +129,7 @@ def main():
     monthly = yf.download(tickers, period="max", interval="1mo", group_by="ticker",
                           auto_adjust=AUTO, progress=False, threads=True)
 
-    n_zones, trades = {}, []
+    n_zones, trades, zone_rows = {}, [], []
     for t in tickers:
         try:
             m, d = clean(monthly, t), clean(daily, t)
@@ -130,9 +141,19 @@ def main():
         sym = t.replace(".NS", "")
         for sg in signals(sym, tf_frames(m)):
             n_zones[sg["tf"]] = n_zones.get(sg["tf"], 0) + 1
+            touch = first_touch(d, sg)
+            zone_rows.append({**sg, "status": "tested" if touch is not None else "fresh",
+                              "touch_date": touch})
             tr = simulate_zone(d, sg)
             if tr:
                 trades.append({**sg, **tr})
+
+    zdf = pd.DataFrame(zone_rows).sort_values(["status", "tf", "sym", "avail"])
+    os.makedirs("reports/fresh_backtest", exist_ok=True)
+    zdf.to_csv("reports/fresh_backtest/zones.csv", index=False)
+    fresh = zdf[zdf["status"] == "fresh"]
+    print("ZONES fresh:", len(fresh), "tested:", len(zdf) - len(fresh))
+    print(fresh[["sym", "tf", "avail", "prox", "dist"]].round(2).to_string(index=False))
 
     trades.sort(key=lambda x: x["entry_date"])
     equity = START_CAPITAL
