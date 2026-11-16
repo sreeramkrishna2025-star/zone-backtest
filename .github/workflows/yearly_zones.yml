@@ -1,0 +1,66 @@
+name: Yearly zones NIFTY 50
+
+on:
+  workflow_dispatch:
+
+jobs:
+  yearly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Scan yearly zones
+        run: |
+          python - <<'PY'
+          import os
+          import pandas as pd
+          import yfinance as yf
+          from zone_agent.zones import find_zones
+
+          NIFTY50 = ["ADANIENT","ADANIPORTS","APOLLOHOSP","ASIANPAINT","AXISBANK","BAJAJ-AUTO",
+            "BAJAJFINSV","BAJFINANCE","BEL","BHARTIARTL","BPCL","BRITANNIA","CIPLA",
+            "COALINDIA","DRREDDY","EICHERMOT","ETERNAL","GRASIM","HCLTECH","HDFCBANK",
+            "HDFCLIFE","HEROMOTOCO","HINDALCO","HINDUNILVR","ICICIBANK","INDUSINDBK",
+            "INFY","ITC","JSWSTEEL","KOTAKBANK","LT","M&M","MARUTI","NESTLEIND",
+            "NTPC","ONGC","POWERGRID","RELIANCE","SBILIFE","SBIN","SHRIRAMFIN",
+            "SUNPHARMA","TATACONSUM","TATAMOTORS","TATASTEEL","TCS","TECHM","TITAN",
+            "TRENT","ULTRACEMCO","WIPRO"]
+          tickers = [t + ".NS" for t in NIFTY50]
+          raw = yf.download(tickers, period="max", interval="1mo", group_by="ticker",
+                            auto_adjust=True, progress=False, threads=True)
+          rows = []
+          for t in tickers:
+              try:
+                  m = raw[t][["Open","High","Low","Close"]].dropna()
+              except Exception:
+                  print("no data", t); continue
+              if len(m) < 24:
+                  continue
+              m.index = pd.to_datetime(m.index).tz_localize(None)
+              y = m.resample("YE").agg({"Open":"first","High":"max","Low":"min","Close":"last"}).dropna()
+              zones, _ = find_zones(y)
+              for z in zones:
+                  rows.append({
+                      "symbol": t.replace(".NS",""), "kind": z.kind, "pattern": z.pattern,
+                      "base_years": f"{y.index[z.base_start].year}-{y.index[z.base_end].year}",
+                      "legout_year": y.index[z.legout_idx].year,
+                      "proximal": round(float(z.proximal),2), "distal": round(float(z.distal),2),
+                      "base_candles": z.base_count, "tests": z.tests,
+                      "breached": z.breached, "in_zone_now": z.in_zone_now,
+                      "last_close": round(float(y["Close"].iloc[-1]),2),
+                  })
+          out = pd.DataFrame(rows)
+          os.makedirs("reports/yearly", exist_ok=True)
+          out.to_csv("reports/yearly/yearly_zones.csv", index=False)
+          print("TOTAL ZONES", len(out))
+          print(out.to_string(index=False))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yearly-zones
+          path: reports/yearly/
