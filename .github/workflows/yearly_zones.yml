@@ -2,6 +2,10 @@ name: Yearly zones NIFTY 50
 
 on:
   workflow_dispatch:
+    inputs:
+      auto_adjust:
+        description: 'yfinance auto_adjust (true/false)'
+        default: 'true'
 
 jobs:
   yearly:
@@ -15,6 +19,8 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - name: Scan yearly zones
+        env:
+          AUTO_ADJUST: ${{ github.event.inputs.auto_adjust || 'true' }}
         run: |
           python - <<'PY'
           import os
@@ -34,7 +40,7 @@ jobs:
           # symbols whose candles are printed to the log for manual chart checks
           CHECK = {"INFY","ITC","M&M","GRASIM","TATASTEEL","BEL","ADANIPORTS","ULTRACEMCO","WIPRO","ICICIBANK"}
           raw = yf.download(tickers, period="max", interval="1mo", group_by="ticker",
-                            auto_adjust=True, progress=False, threads=True)
+                            auto_adjust=os.environ.get('AUTO_ADJUST','true')=='true', progress=False, threads=True)
           rows = []
           for t in tickers:
               try:
