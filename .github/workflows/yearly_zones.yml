@@ -1,4 +1,4 @@
-name: Yearly zones NIFTY 50
+name: Fresh DBR zones NIFTY 50 (monthly, quarterly, half-year, yearly)
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ on:
         default: 'false'
 
 jobs:
-  yearly:
+  zones:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -18,7 +18,7 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
-      - name: Scan yearly zones
+      - name: Scan fresh DBR zones
         env:
           AUTO_ADJUST: ${{ github.event.inputs.auto_adjust || 'false' }}
         run: |
@@ -37,10 +37,11 @@ jobs:
             "SUNPHARMA","TATACONSUM","TATAMOTORS","TATASTEEL","TCS","TECHM","TITAN",
             "TRENT","ULTRACEMCO","WIPRO"]
           tickers = [t + ".NS" for t in NIFTY50]
-          # symbols whose candles are printed to the log for manual chart checks
-          CHECK = {"INFY","ITC","M&M","GRASIM","TATASTEEL","BEL","ADANIPORTS","ULTRACEMCO","WIPRO","ICICIBANK"}
+          auto = os.environ.get("AUTO_ADJUST", "false") == "true"
           raw = yf.download(tickers, period="max", interval="1mo", group_by="ticker",
-                            auto_adjust=os.environ.get('AUTO_ADJUST','false')=='true', progress=False, threads=True)
+                            auto_adjust=auto, progress=False, threads=True)
+          today = pd.Timestamp.now().normalize()
+          agg = {"Open":"first","High":"max","Low":"min","Close":"last"}
           rows = []
           for t in tickers:
               try:
@@ -50,43 +51,50 @@ jobs:
               if len(m) < 24:
                   continue
               m.index = pd.to_datetime(m.index).tz_localize(None)
-              agg = {"Open":"first","High":"max","Low":"min","Close":"last"}
-              yearly = m.resample("YE").agg(agg).dropna()
-              # half-year: Jan-Jun and Jul-Dec buckets from monthly candles
+              # only fully closed months
+              m = m[m.index < pd.Timestamp(today.year, today.month, 1)]
+              frames = {"monthly": m}
+              yr = m.resample("YE").agg(agg).dropna()
+              frames["yearly"] = yr[yr.index.year < today.year]
               key = m.index.year * 2 + (m.index.month > 6).astype(int)
-              half = m.groupby(key).agg(agg).dropna()
-              half.index = m.groupby(key).apply(lambda g: g.index[-1]).reindex(half.index)
-              # only fully closed periods: drop the current, still-open year / half-year
-              today = pd.Timestamp.now().normalize()
-              cur_key = today.year * 2 + int(today.month > 6)
-              yearly = yearly[yearly.index.year < today.year]
-              half = half[(half.index.year * 2 + (half.index.month > 6).astype(int)) < cur_key]
-              for tf, y in (("yearly", yearly), ("halfyear", half)):
-                  if t.replace(".NS","") in CHECK:
-                      print(f"CANDLES {tf} {t}")
-                      print(y[y.index.year >= 2019].round(2).to_string())
+              hf = m.groupby(key).agg(agg).dropna()
+              hf.index = m.groupby(key).apply(lambda g: g.index[-1]).reindex(hf.index)
+              cur_h = today.year * 2 + int(today.month > 6)
+              frames["halfyear"] = hf[(hf.index.year * 2 + (hf.index.month > 6).astype(int)) < cur_h]
+              qt = m.resample("QE").agg(agg).dropna()
+              frames["quarterly"] = qt[qt.index < today.to_period("Q").end_time.normalize()]
+              for tf, y in frames.items():
+                  if len(y) < 8:
+                      continue
+                  red = (y["Close"] < y["Open"]).to_numpy()
+                  low = y["Low"].to_numpy()
                   zones, _ = find_zones(y, require_high_break=True)
                   for z in zones:
-                      # fresh only: never touched since the setup finished, not breached
+                      # fresh only: never touched, not breached, not inside now
                       if z.tests != 0 or z.breached or z.in_zone_now:
                           continue
+                      s = z.legin_idx
+                      while s - 1 >= 0 and red[s - 1]:
+                          s -= 1
+                      setup_low = float(low[s:z.base_end + 1].min())
+                      broken = bool((low[z.legout_idx + 1:] < setup_low).any())
                       rows.append({
-                          "timeframe": tf,
-                          "symbol": t.replace(".NS",""), "kind": z.kind, "pattern": z.pattern,
+                          "timeframe": tf, "symbol": t.replace(".NS",""),
+                          "kind": z.kind, "pattern": z.pattern,
                           "base_period": f"{y.index[z.base_start].date()}..{y.index[z.base_end].date()}",
                           "legout_period": str(y.index[z.legout_idx].date()),
-                          "proximal": round(float(z.proximal),2), "distal": round(float(z.distal),2),
-                          "base_candles": z.base_count, "tests": z.tests,
-                          "breached": z.breached, "in_zone_now": z.in_zone_now,
-                          "last_close": round(float(y["Close"].iloc[-1]),2),
+                          "proximal": round(float(z.proximal), 2), "distal": round(float(z.distal), 2),
+                          "setup_low": round(setup_low, 2), "setup_broken": broken,
+                          "base_candles": z.base_count,
+                          "last_closed": round(float(y["Close"].iloc[-1]), 2),
                       })
           out = pd.DataFrame(rows)
-          os.makedirs("reports/yearly", exist_ok=True)
-          out.to_csv("reports/yearly/yearly_zones.csv", index=False)
-          print("TOTAL ZONES", len(out))
+          os.makedirs("reports/fresh", exist_ok=True)
+          out.to_csv("reports/fresh/fresh_zones.csv", index=False)
+          print("TOTAL FRESH ZONES", len(out))
           print(out.to_string(index=False))
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: yearly-zones
-          path: reports/yearly/
+          name: fresh-zones
+          path: reports/fresh/
