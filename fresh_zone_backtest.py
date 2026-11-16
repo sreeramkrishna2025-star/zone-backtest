@@ -154,6 +154,9 @@ def main():
     fresh = zdf[zdf["status"] == "fresh"]
     print("ZONES fresh:", len(fresh), "tested:", len(zdf) - len(fresh))
     print(fresh[["sym", "tf", "avail", "prox", "dist"]].round(2).to_string(index=False))
+    tested = zdf[zdf["status"] == "tested"]
+    print("TESTED ZONES")
+    print(tested[["sym", "tf", "avail", "prox", "dist", "touch_date"]].round(2).to_string(index=False))
 
     trades.sort(key=lambda x: x["entry_date"])
     equity = START_CAPITAL
