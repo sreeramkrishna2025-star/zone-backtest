@@ -115,8 +115,14 @@ class Zone:
 
 
 # --------------------------------------------------------------------------- detection
-def find_zones(df: pd.DataFrame, max_base: int | None = None) -> tuple[list[Zone], pd.DataFrame]:
-    """Find every demand & supply zone in the data (oldest first)."""
+def find_zones(df: pd.DataFrame, max_base: int | None = None,
+               require_high_break: bool = False) -> tuple[list[Zone], pd.DataFrame]:
+    """Find every demand & supply zone in the data (oldest first).
+
+    require_high_break (DBR demand only): the drop starts at the first red candle
+    of the drop run. The legout candle must CLOSE above the High of that first
+    red candle, in the same timeframe, or the zone is rejected.
+    """
     d = classify_candles(df)
     n = len(d)
     O, H, L, Cl = (d[k].to_numpy() for k in ("Open", "High", "Low", "Close"))
@@ -124,6 +130,7 @@ def find_zones(df: pd.DataFrame, max_base: int | None = None) -> tuple[list[Zone
     leg_up, leg_dn = d["leg_up"].to_numpy(), d["leg_down"].to_numpy()
     is_base, expl = d["is_base"].to_numpy(), d["explosive"].to_numpy()
     green = d["green"].to_numpy()
+    red = d["red"].to_numpy()
 
     zones: list[Zone] = []
     for i in range(2, n):
@@ -152,6 +159,13 @@ def find_zones(df: pd.DataFrame, max_base: int | None = None) -> tuple[list[Zone
                 # closing concept: legout closes above legin
                 if C.REQUIRE_CLOSING_CONCEPT and Cl[i] <= btop[legin]:
                     continue
+                if require_high_break and pattern == "DBR":
+                    # walk back to the first red candle of the drop run
+                    s = legin
+                    while s - 1 >= 0 and red[s - 1]:
+                        s -= 1
+                    if Cl[i] <= H[s]:
+                        continue
                 proximal = btop[b].max()
                 distal = L[b].min()
                 if C.EXCEPTIONAL_MARKING:
