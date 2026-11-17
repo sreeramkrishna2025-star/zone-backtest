@@ -38,6 +38,7 @@ Locked by the user. Do not change without an explicit new instruction.
 - Fill price: if the open is at or below the proximal level (inside the zone or below it), fill at the open. If the open is above the proximal level, fill at the proximal level.
 - If the open is below the distal level, the zone is broken. The setup is invalid and no trade is taken.
 - Stop: zone distal. Target: 1:2 reward/risk.
+- Setup break: if after the first touch, price trades below the distal level during the day (not via a gap), the setup is invalid. If a trade is open and the stop is hit, the setup is no longer used for any further trade.
 - Same-bar stop and target: stop first.
 
 ## Implementation
