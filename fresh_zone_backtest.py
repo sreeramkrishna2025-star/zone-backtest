@@ -156,10 +156,10 @@ def main():
     zdf.to_csv("reports/fresh_backtest/zones.csv", index=False)
     fresh = zdf[zdf["status"] == "fresh"]
     print("ZONES fresh:", len(fresh), "tested:", len(zdf) - len(fresh))
-    print(fresh[["sym", "tf", "avail", "prox", "dist"]].round(2).to_string(index=False))
+    print(fresh[["sym", "tf", "pattern", "avail", "prox", "dist"]].round(2).to_string(index=False))
     tested = zdf[zdf["status"] == "tested"]
     print("TESTED ZONES")
-    print(tested[["sym", "tf", "avail", "prox", "dist", "touch_date"]].round(2).to_string(index=False))
+    print(tested[["sym", "tf", "pattern", "avail", "prox", "dist", "touch_date"]].round(2).to_string(index=False))
 
     trades.sort(key=lambda x: x["entry_date"])
     equity = START_CAPITAL
