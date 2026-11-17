@@ -60,4 +60,5 @@ Locked by the user. Do not change without an explicit new instruction.
 - Touch alerts and invalid alerts are sent instantly.
 - Touch alerts only for zones that are marked "watch" in the app.
 - Distance filter: an instant alert is sent only if the price is within 5% of the zone's proximal level. Zones farther away appear in the Zones tab only.
+- Alerts are sent only for stocks in the user's app watchlist. Stocks outside the watchlist never trigger alerts.
 - Alerts never say buy or sell.
