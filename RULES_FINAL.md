@@ -34,6 +34,7 @@ Locked by the user. Do not change without an explicit new instruction.
 - Setup is valid only if the legout candle closes above the High of the legin candle (same timeframe).
 - Supply exceptional zone lines (mirror of demand): lower line = legout open. Upper line = the higher of the legin high and the legout high.
 - Supply setup is valid only if the legout candle closes below the Low of the legin candle (same timeframe).
+- Exceptional zone distal: demand = lower line; supply = upper line. Price trading through the distal line (a break) makes the setup invalid, the same as for normal zones.
 
 ## Closing rule (all zones)
 - A setup is final only after the legout candle closes. Zones are formed only from closed candles.
