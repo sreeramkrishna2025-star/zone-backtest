@@ -24,6 +24,13 @@ Locked by the user. Do not change without an explicit new instruction.
 - RBD rally start = the first green candle of the rally run. Legout close must be below the Low of that first green candle (same timeframe).
 - DBD: drop candle (legin) and drop candle (legout) as above.
 
+## Exceptional zones
+- An exceptional zone is a legin candle followed directly by a legout candle, with no base candle in between.
+- Legin and legout each follow the 10% total wick rule above. The base rule does not apply, because there is no base.
+- Exceptional zones are marked only on monthly, quarterly, halfyear and yearly candles.
+- Normal zones (with a base) are marked on daily, weekly, monthly, quarterly, halfyear and yearly candles.
+- Drop start and closing rules (DBR, RBD) apply the same way as for normal zones.
+
 ## Closing rule (all zones)
 - A setup is final only after the legout candle closes. Zones are formed only from closed candles.
 
