@@ -32,7 +32,7 @@ Locked by the user. Do not change without an explicit new instruction.
 - Drop start and closing rules (DBR, RBD) apply the same way as for normal zones.
 - Demand exceptional zone lines: upper line = legout open. Lower line = the higher of the legin low and the legout low.
 - Setup is valid only if the legout candle closes above the High of the legin candle (same timeframe).
-- Supply exceptional zone lines (mirror of demand): lower line = legout open. Upper line = the lower of the legin high and the legout high.
+- Supply exceptional zone lines (mirror of demand): lower line = legout open. Upper line = the higher of the legin high and the legout high.
 - Supply setup is valid only if the legout candle closes below the Low of the legin candle (same timeframe).
 
 ## Closing rule (all zones)
