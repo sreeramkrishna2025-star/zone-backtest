@@ -204,6 +204,13 @@ def find_zones(df: pd.DataFrame, max_base: int | None = None,
                         continue
                 if C.REQUIRE_CLOSING_CONCEPT and Cl[i] >= bbot[legin]:
                     continue
+                if strict_shapes and pattern == "RBD":
+                    # legout must CLOSE below the Low of the first green candle of the rally run
+                    s0 = legin
+                    while s0 - 1 >= 0 and green[s0 - 1]:
+                        s0 -= 1
+                    if Cl[i] >= L[s0]:
+                        continue
                 proximal = bbot[b].min()
                 distal = H[b].max()
                 if C.EXCEPTIONAL_MARKING:

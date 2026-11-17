@@ -21,7 +21,11 @@ Locked by the user. Do not change without an explicit new instruction.
 
 ## Supply zones
 - RBD: rally candle (legin) and drop candle (legout) as above.
+- RBD rally start = the first green candle of the rally run. Legout close must be below the Low of that first green candle (same timeframe).
 - DBD: drop candle (legin) and drop candle (legout) as above.
+
+## Closing rule (all zones)
+- A setup is final only after the legout candle closes. Zones are formed only from closed candles.
 
 ## Freshness and invalidation
 - Fresh = price has not touched the zone since the legout period closed (any timeframe, daily data).
