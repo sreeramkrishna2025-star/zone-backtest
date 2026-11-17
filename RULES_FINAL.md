@@ -34,7 +34,8 @@ Locked by the user. Do not change without an explicit new instruction.
 - A break of the setup low needs a touch first, so it adds no separate rule.
 
 ## Entry and exit (backtest only)
-- Entry: first touch, fill at open if gapped past the zone, else at the zone level.
+- Entry: first touch of the zone (proximal level).
+- Fill price: if the open is at or below the proximal level (inside the zone or below it), fill at the open. If the open is above the proximal level, fill at the proximal level.
 - Stop: zone distal. Target: 1:2 reward/risk.
 - Same-bar stop and target: stop first.
 
