@@ -48,16 +48,30 @@ def clean(df, t):
     return d
 
 
-def tf_frames(m):
+def tf_frames(m, d):
     key = m.index.year * 2 + (m.index.month > 6).astype(int)
     half = m.groupby(key).agg(AGG).dropna()
     half.index = m.groupby(key).apply(lambda g: g.index[-1]).reindex(half.index)
     return {
+        "daily": d,
+        "weekly": d.resample("W-FRI").agg(AGG).dropna(),
         "monthly": m,
         "quarterly": m.resample("QE").agg(AGG).dropna(),
         "halfyear": half,
         "yearly": m.resample("YE").agg(AGG).dropna(),
     }
+
+# timeframes whose zones are simulated as trades; daily/weekly zones are only listed for now
+BACKTEST_TFS = ("monthly", "quarterly", "halfyear", "yearly")
+
+
+def period_end(y, tf, i):
+    """Date the legout period closes. Monthly and halfyear labels are month starts/ends;
+    quarterly, yearly, weekly and daily labels are already the period end or the candle date."""
+    t = y.index[i]
+    if tf in ("monthly", "halfyear"):
+        return (t + pd.offsets.MonthEnd(0)).normalize()
+    return pd.Timestamp(t).normalize()
 
 
 def signals(sym, frames):
@@ -76,7 +90,7 @@ def signals(sym, frames):
             # zone geometry only; touches are checked on daily data below
             out.append({
                 "sym": sym, "tf": tf, "pattern": z.pattern, "side": side,
-                "avail": (y.index[z.legout_idx] + pd.offsets.MonthEnd(0)).normalize(),
+                "avail": period_end(y, tf, z.legout_idx),
                 "prox": float(z.proximal), "dist": float(z.distal),
             })
     return out
@@ -150,14 +164,14 @@ def main():
             continue
         sym = t.replace(".NS", "")
         today = pd.Timestamp.now().normalize()
-        for sg in signals(sym, tf_frames(m)):
-            if sg["avail"] > today:  # legout period not closed yet
+        for sg in signals(sym, tf_frames(m, d)):
+            if sg["avail"] >= today:  # legout period not closed yet (today's candle may be partial)
                 continue
             n_zones[sg["tf"]] = n_zones.get(sg["tf"], 0) + 1
             touch = first_touch(d, sg)
             zone_rows.append({**sg, "status": "tested" if touch is not None else "fresh",
                               "touch_date": touch})
-            tr = simulate_zone(d, sg) if sg["side"] == "demand" else None
+            tr = simulate_zone(d, sg) if sg["side"] == "demand" and sg["tf"] in BACKTEST_TFS else None
             if tr:
                 trades.append({**sg, **tr})
 
