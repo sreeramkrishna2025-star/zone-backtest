@@ -199,6 +199,12 @@ def find_zones(df: pd.DataFrame, max_base: int | None = None,
                 strong_close = Cl[i] > H[legin]
             else:
                 pattern = "DBD" if not legin_up else "RBD"
+                if strict_shapes:
+                    wr = d["wick_ratio"].to_numpy()
+                    legin_max = C.STRICT_DBD_WICK_MAX if pattern == "DBD" else C.STRICT_RBD_RALLY_WICK_MAX
+                    legout_max = C.STRICT_DBD_WICK_MAX if pattern == "DBD" else C.STRICT_RBD_DROP_WICK_MAX
+                    if wr[legin] > legin_max or wr[i] > legout_max:
+                        continue
                 if C.REQUIRE_CLOSING_CONCEPT and Cl[i] >= bbot[legin]:
                     continue
                 proximal = bbot[b].min()

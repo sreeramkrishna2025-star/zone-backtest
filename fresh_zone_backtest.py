@@ -67,11 +67,15 @@ def signals(sym, frames):
             continue
         zones, _ = find_zones(y, require_high_break=True, strict_shapes=True)
         for z in zones:
-            if z.kind != "demand" or z.pattern not in ("DBR", "RBR"):
+            if z.kind == "demand" and z.pattern in ("DBR", "RBR"):
+                side = "demand"
+            elif z.kind == "supply" and z.pattern in ("DBD", "RBD"):
+                side = "supply"
+            else:
                 continue
             # zone geometry only; touches are checked on daily data below
             out.append({
-                "sym": sym, "tf": tf, "pattern": z.pattern,
+                "sym": sym, "tf": tf, "pattern": z.pattern, "side": side,
                 "avail": (y.index[z.legout_idx] + pd.offsets.MonthEnd(0)).normalize(),
                 "prox": float(z.proximal), "dist": float(z.distal),
             })
@@ -79,12 +83,18 @@ def signals(sym, frames):
 
 
 def first_touch(D, sg):
-    """Date of the first daily touch after the zone is available, or None."""
+    """Date of the first daily touch after the zone is available, or None.
+    Demand: low reaches proximal. Supply: high reaches proximal."""
     idx = D.index
     start = idx.searchsorted(sg["avail"], side="right")
-    L = D["Low"].to_numpy()
+    if sg["side"] == "supply":
+        X = D["High"].to_numpy()
+        hit = lambda i: X[i] >= sg["prox"]
+    else:
+        X = D["Low"].to_numpy()
+        hit = lambda i: X[i] <= sg["prox"]
     for i in range(start, len(idx)):
-        if L[i] <= sg["prox"]:
+        if hit(i):
             return idx[i]
     return None
 
@@ -147,7 +157,7 @@ def main():
             touch = first_touch(d, sg)
             zone_rows.append({**sg, "status": "tested" if touch is not None else "fresh",
                               "touch_date": touch})
-            tr = simulate_zone(d, sg)
+            tr = simulate_zone(d, sg) if sg["side"] == "demand" else None
             if tr:
                 trades.append({**sg, **tr})
 
