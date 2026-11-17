@@ -30,7 +30,8 @@ Locked by the user. Do not change without an explicit new instruction.
 - Exceptional zones are marked only on monthly, quarterly, halfyear and yearly candles.
 - Normal zones (with a base) are marked on daily, weekly, monthly, quarterly, halfyear and yearly candles.
 - Drop start and closing rules (DBR, RBD) apply the same way as for normal zones.
-- Demand exceptional zone lines: upper line = the lower (weaker) of the legin body close and the legout body open. Lower line = the lowest low of legin and legout.
+- Demand exceptional zone lines: upper line = legout open. Lower line = the higher of the legin low and the legout low.
+- Setup is valid only if the legout candle closes above the High of the legin candle (same timeframe).
 
 ## Closing rule (all zones)
 - A setup is final only after the legout candle closes. Zones are formed only from closed candles.
