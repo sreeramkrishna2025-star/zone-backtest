@@ -139,7 +139,10 @@ def main():
         if len(m) < 24 or len(d) < 250:
             continue
         sym = t.replace(".NS", "")
+        today = pd.Timestamp.now().normalize()
         for sg in signals(sym, tf_frames(m)):
+            if sg["avail"] > today:  # legout period not closed yet
+                continue
             n_zones[sg["tf"]] = n_zones.get(sg["tf"], 0) + 1
             touch = first_touch(d, sg)
             zone_rows.append({**sg, "status": "tested" if touch is not None else "fresh",
