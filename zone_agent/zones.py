@@ -176,6 +176,8 @@ def find_zones(df: pd.DataFrame, max_base: int | None = None,
                 pattern = "RBR" if legin_up else "DBR"
                 if strict_shapes and pattern == "DBR" and not drop_lower_ok[legin]:
                     continue
+                if strict_shapes and pattern == "RBR" and d["wick_ratio"].iloc[i] > C.STRICT_RBR_LEGOUT_WICK_MAX:
+                    continue
                 # closing concept: legout closes above legin
                 if C.REQUIRE_CLOSING_CONCEPT and Cl[i] <= btop[legin]:
                     continue
