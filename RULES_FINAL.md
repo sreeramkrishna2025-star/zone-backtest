@@ -53,3 +53,11 @@ Locked by the user. Do not change without an explicit new instruction.
 ## Implementation
 - `zone_agent/zones.py` `find_zones(..., require_high_break=True, strict_shapes=True)`
 - Constants in `zone_agent/config.py`: STRICT_BASE_BODY_MAX (0.40), STRICT_WICK_MAX (0.10).
+
+## Alerts (display only, no trading effect)
+- Instant alerts (Telegram + Zones tab) for monthly, quarterly, halfyear and yearly zones only. Daily and weekly zones appear in the Zones tab only.
+- New-zone alerts are sent as one daily digest, not instantly.
+- Touch alerts and invalid alerts are sent instantly.
+- Touch alerts only for zones that are marked "watch" in the app.
+- Distance filter: an instant alert is sent only if the price is within 5% of the zone's proximal level. Zones farther away appear in the Zones tab only.
+- Alerts never say buy or sell.
