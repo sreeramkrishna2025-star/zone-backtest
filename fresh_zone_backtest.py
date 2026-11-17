@@ -67,11 +67,11 @@ def signals(sym, frames):
             continue
         zones, _ = find_zones(y, require_high_break=True, strict_shapes=True)
         for z in zones:
-            if z.kind != "demand" or z.pattern != "DBR":
+            if z.kind != "demand" or z.pattern not in ("DBR", "RBR"):
                 continue
             # zone geometry only; touches are checked on daily data below
             out.append({
-                "sym": sym, "tf": tf,
+                "sym": sym, "tf": tf, "pattern": z.pattern,
                 "avail": (y.index[z.legout_idx] + pd.offsets.MonthEnd(0)).normalize(),
                 "prox": float(z.proximal), "dist": float(z.distal),
             })
