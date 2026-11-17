@@ -65,7 +65,7 @@ def signals(sym, frames):
     for tf, y in frames.items():
         if len(y) < 8:
             continue
-        zones, _ = find_zones(y, require_high_break=True)
+        zones, _ = find_zones(y, require_high_break=True, strict_shapes=True)
         for z in zones:
             if z.kind != "demand" or z.pattern != "DBR":
                 continue
