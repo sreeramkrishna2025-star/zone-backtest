@@ -14,14 +14,8 @@ EXPLOSIVE_BODY_MULT = 1.5   # exciting AND body > 1.5x avg body = explosive
 AVG_BODY_WINDOW = 20
 
 # ---------------- Zone rules ----------------
-STRICT_BASE_BODY_MAX = 0.40      # strict shapes: base body <= 40% of range
-STRICT_LEGOUT_WICK_MAX = 0.20    # strict shapes: demand legout total wick <= 20%
-STRICT_RBR_LEGOUT_WICK_MAX = 0.10  # strict shapes: RBR legout total wick <= 10%
-STRICT_RBR_LEGIN_WICK_MAX = 0.10   # strict shapes: RBR rally candle (legin) total wick <= 10%
-STRICT_DROP_LOWER_WICK_MAX = 0.10  # strict shapes: DBR drop candle lower wick <= 10%
-STRICT_DBD_WICK_MAX = 0.10        # strict shapes: DBD drop candles total wick <= 10%
-STRICT_RBD_RALLY_WICK_MAX = 0.20  # strict shapes: RBD rally candle total wick <= 20%
-STRICT_RBD_DROP_WICK_MAX = 0.20   # strict shapes: RBD drop candle total wick <= 20%
+STRICT_BASE_BODY_MAX = 0.40   # base candle body <= 40% of range (base candles only)
+STRICT_WICK_MAX = 0.10        # legin and legout candles (all patterns): total wick <= 10% of range
 MAX_BASE_CANDLES = 2        # user rule: a zone has at most 2 base candles
 EXCEPTIONAL_MARKING = True  # use legin/legout wick for distal when it goes beyond base
 REQUIRE_CLOSING_CONCEPT = True  # DZ legout must close above legin, SZ below legin

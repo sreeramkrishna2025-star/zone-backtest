@@ -140,9 +140,9 @@ def find_zones(df: pd.DataFrame, max_base: int | None = None,
         # base candle: body <= 40% of range (wicks >= 60%)
         base_ok = is_base & (d["ratio"].to_numpy() <= C.STRICT_BASE_BODY_MAX)
         # legout (demand only): total wick <= 20% of range
-        legout_wick_ok = d["wick_ratio"].to_numpy() <= C.STRICT_LEGOUT_WICK_MAX
-        # drop candle (DBR): lower wick <= 10% of range
-        drop_lower_ok = d["lower_wick_ratio"].to_numpy() <= C.STRICT_DROP_LOWER_WICK_MAX
+        # legin and legout candles of every pattern: total wick <= 10% of range
+        legout_wick_ok = d["wick_ratio"].to_numpy() <= C.STRICT_WICK_MAX
+        drop_lower_ok = legout_wick_ok
     else:
         base_ok = is_base
         legout_wick_ok = np.ones(n, dtype=bool)
@@ -174,11 +174,7 @@ def find_zones(df: pd.DataFrame, max_base: int | None = None,
 
             if kind == "demand":
                 pattern = "RBR" if legin_up else "DBR"
-                if strict_shapes and pattern == "DBR" and not drop_lower_ok[legin]:
-                    continue
-                if strict_shapes and pattern == "RBR" and d["wick_ratio"].iloc[i] > C.STRICT_RBR_LEGOUT_WICK_MAX:
-                    continue
-                if strict_shapes and pattern == "RBR" and d["wick_ratio"].iloc[legin] > C.STRICT_RBR_LEGIN_WICK_MAX:
+                if strict_shapes and d["wick_ratio"].iloc[legin] > C.STRICT_WICK_MAX:
                     continue
                 # closing concept: legout closes above legin
                 if C.REQUIRE_CLOSING_CONCEPT and Cl[i] <= btop[legin]:
@@ -203,8 +199,7 @@ def find_zones(df: pd.DataFrame, max_base: int | None = None,
                 pattern = "DBD" if not legin_up else "RBD"
                 if strict_shapes:
                     wr = d["wick_ratio"].to_numpy()
-                    legin_max = C.STRICT_DBD_WICK_MAX if pattern == "DBD" else C.STRICT_RBD_RALLY_WICK_MAX
-                    legout_max = C.STRICT_DBD_WICK_MAX if pattern == "DBD" else C.STRICT_RBD_DROP_WICK_MAX
+                    legin_max = legout_max = C.STRICT_WICK_MAX
                     if wr[legin] > legin_max or wr[i] > legout_max:
                         continue
                 if C.REQUIRE_CLOSING_CONCEPT and Cl[i] >= bbot[legin]:
