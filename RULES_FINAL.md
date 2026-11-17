@@ -16,6 +16,7 @@ Locked by the user. Do not change without an explicit new instruction.
 - Total wick (upper + lower) as a % of range:
   - DBR legout: <= 20%
   - RBR legout: <= 10%
+- RBR rally candle (legin): total wick (upper + lower) <= 10%
 
 ## Drop candle (DBR only)
 - Lower wick <= 10% of range.

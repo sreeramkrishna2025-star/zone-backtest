@@ -17,6 +17,7 @@ AVG_BODY_WINDOW = 20
 STRICT_BASE_BODY_MAX = 0.40      # strict shapes: base body <= 40% of range
 STRICT_LEGOUT_WICK_MAX = 0.20    # strict shapes: demand legout total wick <= 20%
 STRICT_RBR_LEGOUT_WICK_MAX = 0.10  # strict shapes: RBR legout total wick <= 10%
+STRICT_RBR_LEGIN_WICK_MAX = 0.10   # strict shapes: RBR rally candle (legin) total wick <= 10%
 STRICT_DROP_LOWER_WICK_MAX = 0.10  # strict shapes: DBR drop candle lower wick <= 10%
 STRICT_DBD_WICK_MAX = 0.10        # strict shapes: DBD drop candles total wick <= 10%
 STRICT_RBD_RALLY_WICK_MAX = 0.20  # strict shapes: RBD rally candle total wick <= 20%
