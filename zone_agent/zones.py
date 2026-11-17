@@ -43,6 +43,10 @@ def classify_candles(df: pd.DataFrame) -> pd.DataFrame:
     d["leg_down"] = (d["exciting"] & d["red"]) | (~d["exciting"] & d["gap_down"])
     d["is_base"] = ~d["exciting"] & ~d["leg_up"] & ~d["leg_down"]
     d["atr"] = atr(df, 14)
+    rng_safe = rng.fillna(0.0)
+    d["upper_wick_ratio"] = ((h - d["body_top"]) / rng).fillna(0.0)
+    d["lower_wick_ratio"] = ((d["body_bot"] - l) / rng).fillna(0.0)
+    d["wick_ratio"] = d["upper_wick_ratio"] + d["lower_wick_ratio"]
     return d
 
 
@@ -116,7 +120,8 @@ class Zone:
 
 # --------------------------------------------------------------------------- detection
 def find_zones(df: pd.DataFrame, max_base: int | None = None,
-               require_high_break: bool = False) -> tuple[list[Zone], pd.DataFrame]:
+               require_high_break: bool = False,
+               strict_shapes: bool = False) -> tuple[list[Zone], pd.DataFrame]:
     """Find every demand & supply zone in the data (oldest first).
 
     require_high_break (DBR demand only): the drop starts at the first red candle
@@ -131,11 +136,24 @@ def find_zones(df: pd.DataFrame, max_base: int | None = None,
     is_base, expl = d["is_base"].to_numpy(), d["explosive"].to_numpy()
     green = d["green"].to_numpy()
     red = d["red"].to_numpy()
+    if strict_shapes:
+        # base candle: body <= 40% of range (wicks >= 60%)
+        base_ok = is_base & (d["ratio"].to_numpy() <= C.STRICT_BASE_BODY_MAX)
+        # legout (demand only): total wick <= 20% of range
+        legout_wick_ok = d["wick_ratio"].to_numpy() <= C.STRICT_LEGOUT_WICK_MAX
+        # drop candle (DBR): lower wick <= 10% of range
+        drop_lower_ok = d["lower_wick_ratio"].to_numpy() <= C.STRICT_DROP_LOWER_WICK_MAX
+    else:
+        base_ok = is_base
+        legout_wick_ok = np.ones(n, dtype=bool)
+        drop_lower_ok = np.ones(n, dtype=bool)
 
     zones: list[Zone] = []
     for i in range(2, n):
         for kind in ("demand", "supply"):
             if kind == "demand" and not leg_up[i]:
+                continue
+            if kind == "demand" and not legout_wick_ok[i]:
                 continue
             if kind == "supply" and not leg_dn[i]:
                 continue
@@ -143,7 +161,7 @@ def find_zones(df: pd.DataFrame, max_base: int | None = None,
             j = i - 1
             bases = []
             mb = max_base or C.MAX_BASE_CANDLES
-            while j >= 0 and is_base[j] and len(bases) <= mb:
+            while j >= 0 and base_ok[j] and len(bases) <= mb:
                 bases.append(j)
                 j -= 1
             if not bases or j < 0 or len(bases) > mb:
@@ -156,6 +174,8 @@ def find_zones(df: pd.DataFrame, max_base: int | None = None,
 
             if kind == "demand":
                 pattern = "RBR" if legin_up else "DBR"
+                if strict_shapes and pattern == "DBR" and not drop_lower_ok[legin]:
+                    continue
                 # closing concept: legout closes above legin
                 if C.REQUIRE_CLOSING_CONCEPT and Cl[i] <= btop[legin]:
                     continue
