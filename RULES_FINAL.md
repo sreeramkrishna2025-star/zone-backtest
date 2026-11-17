@@ -35,3 +35,23 @@ Locked by the user. Do not change without an explicit new instruction.
 ## Implementation
 - `zone_agent/zones.py` `find_zones(..., require_high_break=True, strict_shapes=True)`
 - Constants in `zone_agent/config.py`: STRICT_BASE_BODY_MAX, STRICT_LEGOUT_WICK_MAX, STRICT_RBR_LEGOUT_WICK_MAX, STRICT_DROP_LOWER_WICK_MAX.
+
+---
+
+# Final supply zone rules (RBD and DBD)
+
+Locked by the user. Do not change without an explicit new instruction.
+
+## Base candle (RBD and DBD)
+- Body <= 40% of the candle range.
+- Applies to base candles only. Base is 1 or 2 candles.
+
+## RBD (rally-base-drop)
+- Rally candle (legin): total wick (upper + lower) <= 20% of range.
+- Drop candle (legout): total wick (upper + lower) <= 20% of range.
+
+## DBD (drop-base-drop)
+- Drop candles (legin and legout): total wick (upper + lower) <= 10% of range.
+
+## Freshness and invalidation
+- Same as demand: fresh until the first touch after the legout period closes.
