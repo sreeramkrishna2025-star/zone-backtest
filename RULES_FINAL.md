@@ -77,6 +77,13 @@ Telegram alert (display only, never says buy or sell). No ranking of timeframes:
 - **Price condition (checked at the latest close, e.g. yesterday or the weekend close):** the alert goes only while price is ABOVE the new zone or BETWEEN its proximal and distal. If price is below the distal, the setup is invalid and NO alert is sent.
 - **Once only:** one alert per (tested zone + new zone) pair, never repeated.
 - **Which stocks:** only stocks from the user's Nifty 500 + Nifty 1000 watchlist. No stock outside that list ever triggers this alert. (Reading to confirm: the user's app watchlist, limited to Nifty 500/1000 stocks.)
-- Currently written for the demand side (user: "abhi demand ke liye"). Supply side (mirror) to be added later.
+- **Extra line in the alert (user, 18 Nov 2026):** "Upar ka supply zone": the nearest fresh supply zone above the current price, with its timeframe, proximal/distal lines and distance from price. (Which timeframes count for this line: not decided yet, ask the user.)
+
+### Supply side (mirror of the demand case, draft)
+- **Tested zone:** a Monthly, Quarterly, Halfyear or Yearly SUPPLY zone. Tested = the candle's High reached the zone's proximal (lower) line, OR a candle closed inside the zone. Zone must still be valid (distal = upper line, not broken).
+- **New zone:** after the test, price moved down and a new FRESH SUPPLY zone formed on ANY timeframe (RBD, DBD, or exceptional RBD), legout closed (closing rule).
+- **Price condition (latest close):** price BELOW the new zone or BETWEEN its proximal and distal. If price is above the distal (upper line), the setup is invalid and NO alert is sent.
+- **Alert text (example):** "TCS: Quarterly supply zone test hua, neeche gaya. Weekly RBD naya zone bana, fresh. Proximal 2480, Distal 2510." Plus extra line (mirror): "Neeche ka demand zone: nearest fresh demand zone below the price, with timeframe, lines and distance."
+- Closing is compulsory, once only per (tested zone + new zone) pair, and only stocks from the user's Nifty 500 + 1000 watchlist: same as the demand case.
 - Invalid rule applies everywhere: if price trades through a zone's distal line, that zone is invalid (tested zone and new zone alike).
 - Normal zone rules above (base, legin 30%, legout 20%, closing rule, exceptional) are unchanged.
