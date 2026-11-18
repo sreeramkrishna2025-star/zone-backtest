@@ -68,7 +68,7 @@ Locked by the user. Do not change without an explicit new instruction.
 - Alerts are sent only for stocks in the user's app watchlist. Stocks outside the watchlist never trigger alerts.
 - Alerts never say buy or sell.
 
-## Setup rule: "Zone test -> new zone" (user, 18 Nov 2026) — DRAFT, code not written yet
+## Setup rule: "Zone test -> new zone" (user, 18 Nov 2026) — IMPLEMENTED (trading-alert-app: pipeline/zones_setup.py + pc-app/ZonesAlert.gs)
 Telegram alert (display only, never says buy or sell). No ranking of timeframes: whichever Monthly/Quarterly/Halfyear/Yearly zone was tested is reported.
 - **Tested zone:** a Monthly, Quarterly, Halfyear or Yearly zone. "Tested" = the candle touched the zone's proximal line, OR a candle closed inside the zone (either one is enough). The zone must still be valid (distal not broken).
 - **New zone:** after the test, a new FRESH zone forms on ANY timeframe (daily, weekly, monthly, quarterly, halfyear, yearly), by the normal zone rules (closed legout candle). For the demand case: DBR, RBR (or exceptional DBR). Example: TCS touched a Quarterly demand zone, price moved up, and a Weekly DBR formed.
@@ -87,3 +87,9 @@ Telegram alert (display only, never says buy or sell). No ranking of timeframes:
 - Closing is compulsory, once only per (tested zone + new zone) pair, and only stocks from the user's Nifty 500 + 1000 watchlist: same as the demand case.
 - Invalid rule applies everywhere: if price trades through a zone's distal line, that zone is invalid (tested zone and new zone alike).
 - Normal zone rules above (base, legin 30%, legout 20%, closing rule, exceptional) are unchanged.
+
+### Implementation constants (set by Claude, to be confirmed by the user)
+- NEW_DAYS = 10: the new zone's legout must have closed within the last 10 calendar days (so the alert goes out the same evening, not later).
+- TEST_MAX_DAYS = 90: at most 90 days between the touch of the tested zone and the legout of the new zone (so an old touch from years ago is not linked to a new zone).
+- If several tested zones qualify, the one with the latest touch before the new zone's legout is reported.
+- Extra line zones must be fresh, Monthly-Yearly, and on the other side (demand setup -> nearest supply above price; supply setup -> nearest demand below price).
