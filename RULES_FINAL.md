@@ -69,9 +69,10 @@ Locked by the user. Do not change without an explicit new instruction.
 - Alerts never say buy or sell.
 
 ## Setup rule: "Zone test -> new zone" (user, 18 Nov 2026) — DRAFT, code not written yet
-Display only (no buy/sell). For one stock, show three things:
-1. **Tested zone:** a Monthly, Quarterly, Halfyear or Yearly zone that price has tested. "Tested" = the candle touched the zone's proximal line, OR a candle closed inside the zone (either one is enough).
-2. **New zone:** any zone, on ANY timeframe (daily, weekly, monthly, quarterly, halfyear, yearly), whose legout closed after the test. Example: a Monthly demand zone is touched, then a Weekly zone forms.
-3. **Supply zone above:** the nearest fresh supply zone above the current price, with its timeframe, proximal/distal lines and distance from price. (Timeframe filter for this zone: NOT decided yet — ask the user before coding.)
-- Invalid rule applies everywhere: if price trades through a zone's distal line, that zone is invalid (tested zone, new zone and supply zone alike).
+Telegram alert (display only, never says buy or sell). No ranking of timeframes: whichever Monthly/Quarterly/Halfyear/Yearly zone was tested is reported.
+- **Tested zone:** a Monthly, Quarterly, Halfyear or Yearly zone. "Tested" = the candle touched the zone's proximal line, OR a candle closed inside the zone (either one is enough). The zone must still be valid (distal not broken).
+- **New zone:** after the test, a new FRESH zone forms on ANY timeframe (daily, weekly, monthly, quarterly, halfyear, yearly), by the normal zone rules (closed legout candle). For the demand case: DBR, RBR (or exceptional DBR). Example: TCS touched a Quarterly demand zone, price moved up, and a Weekly DBR formed.
+- **Alert text (example):** "TCS: Quarterly demand zone test hua, upar gaya. Weekly DBR naya zone bana, fresh. Proximal 2170, Distal 2145." Shows: stock, tested zone timeframe, new zone timeframe + pattern, fresh status, proximal, distal.
+- Currently written for the demand side (user: "abhi demand ke liye"). Supply side (mirror) to be added later.
+- Invalid rule applies everywhere: if price trades through a zone's distal line, that zone is invalid (tested zone and new zone alike).
 - Normal zone rules above (base, legin 30%, legout 20%, closing rule, exceptional) are unchanged.
