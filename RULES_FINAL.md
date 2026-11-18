@@ -67,3 +67,11 @@ Locked by the user. Do not change without an explicit new instruction.
 - Distance filter: an instant alert is sent only if the price is within 5% of the zone's proximal level. Zones farther away appear in the Zones tab only.
 - Alerts are sent only for stocks in the user's app watchlist. Stocks outside the watchlist never trigger alerts.
 - Alerts never say buy or sell.
+
+## Setup rule: "Zone test -> new zone" (user, 18 Nov 2026) — DRAFT, code not written yet
+Display only (no buy/sell). For one stock, show three things:
+1. **Tested zone:** a Monthly, Quarterly, Halfyear or Yearly zone that price has tested. "Tested" = the candle touched the zone's proximal line, OR a candle closed inside the zone (either one is enough).
+2. **New zone:** any zone, on ANY timeframe (daily, weekly, monthly, quarterly, halfyear, yearly), whose legout closed after the test. Example: a Monthly demand zone is touched, then a Weekly zone forms.
+3. **Supply zone above:** the nearest fresh supply zone above the current price, with its timeframe, proximal/distal lines and distance from price. (Timeframe filter for this zone: NOT decided yet — ask the user before coding.)
+- Invalid rule applies everywhere: if price trades through a zone's distal line, that zone is invalid (tested zone, new zone and supply zone alike).
+- Normal zone rules above (base, legin 30%, legout 20%, closing rule, exceptional) are unchanged.
