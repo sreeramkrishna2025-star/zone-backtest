@@ -74,7 +74,7 @@ Telegram alert (display only, never says buy or sell). No ranking of timeframes:
 - **New zone:** after the test, a new FRESH zone forms on ANY timeframe (daily, weekly, monthly, quarterly, halfyear, yearly), by the normal zone rules (closed legout candle). For the demand case: DBR, RBR (or exceptional DBR). Example: TCS touched a Quarterly demand zone, price moved up, and a Weekly DBR formed.
 - **Alert text (example):** "TCS: Quarterly demand zone test hua, upar gaya. Weekly DBR naya zone bana, fresh. Proximal 2170, Distal 2145." Shows: stock, tested zone timeframe, new zone timeframe + pattern, fresh status, proximal, distal.
 - **Closing is compulsory:** the new zone counts only after its legout candle closes. So a Weekly zone alert comes after the week closes, a Daily zone alert after that day's close.
-- **Price condition (checked at the latest close, e.g. yesterday or the weekend close):** the alert goes only while price is ABOVE the new zone or BETWEEN its proximal and distal. If price is below the distal, the setup is invalid and NO alert is sent.
+- **No separate price condition (user, 18 Nov 2026):** a new zone exists only after its legout closed above it (demand), so price can only be above the zone or back inside it. The one bad case, distal broken, is already covered by the general invalid rule: no alert. Alert goes out the same evening the zone's legout closes (daily: that day's close; weekly: Friday close; monthly and bigger: last trading day of the period), before the next open.
 - **Once only:** one alert per (tested zone + new zone) pair, never repeated.
 - **Which stocks:** only stocks from the user's Nifty 500 + Nifty 1000 watchlist. No stock outside that list ever triggers this alert. (Reading to confirm: the user's app watchlist, limited to Nifty 500/1000 stocks.)
 - **Extra line in the alert (user, 18 Nov 2026):** "Upar ka supply zone": the nearest fresh supply zone above the current price, with its timeframe, proximal/distal lines and distance from price. (Which timeframes count for this line: not decided yet, ask the user.)
@@ -82,7 +82,7 @@ Telegram alert (display only, never says buy or sell). No ranking of timeframes:
 ### Supply side (mirror of the demand case, draft)
 - **Tested zone:** a Monthly, Quarterly, Halfyear or Yearly SUPPLY zone. Tested = the candle's High reached the zone's proximal (lower) line, OR a candle closed inside the zone. Zone must still be valid (distal = upper line, not broken).
 - **New zone:** after the test, price moved down and a new FRESH SUPPLY zone formed on ANY timeframe (RBD, DBD, or exceptional RBD), legout closed (closing rule).
-- **Price condition (latest close):** price BELOW the new zone or BETWEEN its proximal and distal. If price is above the distal (upper line), the setup is invalid and NO alert is sent.
+- **No separate price condition:** same as the demand case. Distal (upper line) broken = invalid, no alert.
 - **Alert text (example):** "TCS: Quarterly supply zone test hua, neeche gaya. Weekly RBD naya zone bana, fresh. Proximal 2480, Distal 2510." Plus extra line (mirror): "Neeche ka demand zone: nearest fresh demand zone below the price, with timeframe, lines and distance."
 - Closing is compulsory, once only per (tested zone + new zone) pair, and only stocks from the user's Nifty 500 + 1000 watchlist: same as the demand case.
 - Invalid rule applies everywhere: if price trades through a zone's distal line, that zone is invalid (tested zone and new zone alike).
