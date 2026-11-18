@@ -73,6 +73,10 @@ Telegram alert (display only, never says buy or sell). No ranking of timeframes:
 - **Tested zone:** a Monthly, Quarterly, Halfyear or Yearly zone. "Tested" = the candle touched the zone's proximal line, OR a candle closed inside the zone (either one is enough). The zone must still be valid (distal not broken).
 - **New zone:** after the test, a new FRESH zone forms on ANY timeframe (daily, weekly, monthly, quarterly, halfyear, yearly), by the normal zone rules (closed legout candle). For the demand case: DBR, RBR (or exceptional DBR). Example: TCS touched a Quarterly demand zone, price moved up, and a Weekly DBR formed.
 - **Alert text (example):** "TCS: Quarterly demand zone test hua, upar gaya. Weekly DBR naya zone bana, fresh. Proximal 2170, Distal 2145." Shows: stock, tested zone timeframe, new zone timeframe + pattern, fresh status, proximal, distal.
+- **Closing is compulsory:** the new zone counts only after its legout candle closes. So a Weekly zone alert comes after the week closes, a Daily zone alert after that day's close.
+- **Price condition (checked at the latest close, e.g. yesterday or the weekend close):** the alert goes only while price is ABOVE the new zone or BETWEEN its proximal and distal. If price is below the distal, the setup is invalid and NO alert is sent.
+- **Once only:** one alert per (tested zone + new zone) pair, never repeated.
+- **Which stocks:** only stocks from the user's Nifty 500 + Nifty 1000 watchlist. No stock outside that list ever triggers this alert. (Reading to confirm: the user's app watchlist, limited to Nifty 500/1000 stocks.)
 - Currently written for the demand side (user: "abhi demand ke liye"). Supply side (mirror) to be added later.
 - Invalid rule applies everywhere: if price trades through a zone's distal line, that zone is invalid (tested zone and new zone alike).
 - Normal zone rules above (base, legin 30%, legout 20%, closing rule, exceptional) are unchanged.
