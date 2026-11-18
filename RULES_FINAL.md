@@ -8,8 +8,9 @@ Locked by the user. Do not change without an explicit new instruction.
 - Base is 1 or 2 candles. More than 2 is rejected.
 
 ## Legin and legout candles (all patterns)
-- Total wick (upper + lower) <= 20% of the candle range. (Changed from 10% by the user on 18 Nov 2026.)
-- This applies to both legin and legout candles of DBR, RBR, RBD and DBD.
+- Legin: total wick (upper + lower) <= 30% of the candle range. (User, 18 Nov 2026.)
+- Legout: total wick (upper + lower) <= 20% of the candle range. (Changed from 10% by the user on 18 Nov 2026.)
+- This applies to the legin and legout candles of DBR, RBR, RBD and DBD.
 
 ## Drop start (DBR)
 - Drop start = the first red candle of the drop run.
@@ -27,7 +28,7 @@ Locked by the user. Do not change without an explicit new instruction.
 ## Exceptional zones
 - An exceptional zone is a legin candle followed directly by a legout candle, with no base candle in between.
 - Exceptional zones are only DBR (drop legin, rally legout) and RBD (rally legin, drop legout). There is no exceptional RBR or DBD. (User instruction, 18 Nov 2026.)
-- Legin and legout each follow the 20% total wick rule above. The base rule does not apply, because there is no base.
+- Legin follows the 30% and legout the 20% total wick rule above. The base rule does not apply, because there is no base.
 - Exceptional zones are marked only on monthly, quarterly, halfyear and yearly candles.
 - Normal zones (with a base) are marked on daily, weekly, monthly, quarterly, halfyear and yearly candles.
 - Drop start and closing rules (DBR, RBD) apply the same way as for normal zones.
@@ -56,7 +57,7 @@ Locked by the user. Do not change without an explicit new instruction.
 
 ## Implementation
 - `zone_agent/zones.py` `find_zones(..., require_high_break=True, strict_shapes=True)`
-- Constants in `zone_agent/config.py`: STRICT_BASE_BODY_MAX (0.40), STRICT_WICK_MAX (0.20).
+- Constants in `zone_agent/config.py`: STRICT_BASE_BODY_MAX (0.40), STRICT_LEGIN_WICK_MAX (0.30), STRICT_WICK_MAX (0.20, legout).
 
 ## Alerts (display only, no trading effect)
 - Instant alerts (Telegram + Zones tab) for monthly, quarterly, halfyear and yearly zones only. Daily and weekly zones appear in the Zones tab only.

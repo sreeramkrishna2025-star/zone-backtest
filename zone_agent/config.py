@@ -15,7 +15,8 @@ AVG_BODY_WINDOW = 20
 
 # ---------------- Zone rules ----------------
 STRICT_BASE_BODY_MAX = 0.40   # base candle body <= 40% of range (base candles only)
-STRICT_WICK_MAX = 0.20        # legin and legout candles (all patterns): total wick <= 20% of range (18 Nov 2026, user)
+STRICT_WICK_MAX = 0.20        # legout candles (all patterns): total wick <= 20% of range (18 Nov 2026, user)
+STRICT_LEGIN_WICK_MAX = 0.30  # legin candles (all patterns): total wick <= 30% of range (18 Nov 2026, user)
 MAX_BASE_CANDLES = 2        # user rule: a zone has at most 2 base candles
 EXCEPTIONAL_MARKING = True  # use legin/legout wick for distal when it goes beyond base
 REQUIRE_CLOSING_CONCEPT = True  # DZ legout must close above legin, SZ below legin
