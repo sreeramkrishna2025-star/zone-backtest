@@ -418,11 +418,11 @@ def main():
         import matplotlib.pyplot as plt
         fig, ax = plt.subplots(figsize=(10, 5))
         for rr, (tr, port) in per_rr.items():
-            for name, t_ in (("portfolio", port), ("all signals", tr)):
-                eq = a.capital + t_.groupby("date").net_pnl.sum().sort_index().cumsum()
-                ax.plot(pd.to_datetime(eq.index), eq.values, label=f"1:{rr:g} {name}")
+            eq = a.capital + port.groupby("date").net_pnl.sum().sort_index().cumsum()
+            ax.plot(pd.to_datetime(eq.index), eq.values, label=f"1:{rr:g} (max {a.max_positions} open)")
         ax.axhline(a.capital, color="grey", lw=0.8, ls="--")
-        ax.set_title("Break & Bounce - equity (with costs)")
+        ax.axhline(0, color="red", lw=0.8)
+        ax.set_title(f"Break & Bounce - Rs {a.capital:,.0f} account, {a.risk_pct:g}% risk/trade, with costs")
         ax.set_ylabel("Rs")
         ax.legend()
         fig.autofmt_xdate()
