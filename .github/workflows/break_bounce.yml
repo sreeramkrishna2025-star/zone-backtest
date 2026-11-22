@@ -1,0 +1,39 @@
+name: Break & Bounce backtest
+
+on:
+  workflow_dispatch:
+    inputs:
+      args:
+        description: 'e.g. --min-turnover 50   or   --symbols RELIANCE TCS'
+        default: ''
+  push:
+    branches: [main]
+    paths:
+      - break_bounce_backtest.py
+      - .github/workflows/break_bounce.yml
+
+permissions:
+  contents: write
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Backtest
+        env:
+          ARGS: ${{ github.event.inputs.args }}
+        run: eval python break_bounce_backtest.py $ARGS
+      - name: Commit results
+        run: |
+          git config user.name "zone-agent-bot"
+          git config user.email "zone-agent-bot@users.noreply.github.com"
+          git add backtests/break_bounce
+          git commit -m "Break & Bounce backtest results" || exit 0
+          git pull --rebase -q && git push
